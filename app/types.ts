@@ -15,6 +15,15 @@ export interface Book {
     categories: boolean;
     pricing: boolean;
   };
+  amazonLinks?: {
+    ebookASIN?: string;
+    ebookStatus?: 'Live' | 'In Review' | 'Draft' | 'Not Started';
+    ebookPrice?: string;
+    paperbackASIN?: string;
+    paperbackStatus?: 'Live' | 'In Review' | 'Draft' | 'Not Started';
+    paperbackPrice?: string;
+    hardcoverStatus?: 'Live' | 'In Review' | 'Draft' | 'Not Started';
+  };
 }
 
 export type SongStatus = 'Draft' | 'Lyrics Done' | 'Suno Ready' | 'Generated' | 'Video Done' | 'Published';

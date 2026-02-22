@@ -400,6 +400,42 @@ export default function Home() {
                         )}
                       </div>
                     )}
+
+                    {book.amazonLinks && (
+                      <div className="mt-3 p-3 bg-[#0f1419] rounded border border-[#2f3336]">
+                        <div className="text-sm font-semibold text-yellow-500 mb-2">📦 Amazon Status</div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                          <div>
+                            <div className="text-gray-500 text-xs">Kindle eBook</div>
+                            <div className={`font-medium ${book.amazonLinks.ebookStatus === 'Live' ? 'text-green-400' : book.amazonLinks.ebookStatus === 'In Review' ? 'text-yellow-400' : 'text-gray-500'}`}>
+                              {book.amazonLinks.ebookStatus} {book.amazonLinks.ebookPrice && `• ${book.amazonLinks.ebookPrice}`}
+                            </div>
+                            {book.amazonLinks.ebookASIN && (
+                              <a href={`https://www.amazon.com/dp/${book.amazonLinks.ebookASIN}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs">
+                                ASIN: {book.amazonLinks.ebookASIN} ↗
+                              </a>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-gray-500 text-xs">Paperback</div>
+                            <div className={`font-medium ${book.amazonLinks.paperbackStatus === 'Live' ? 'text-green-400' : book.amazonLinks.paperbackStatus === 'In Review' ? 'text-yellow-400' : 'text-gray-500'}`}>
+                              {book.amazonLinks.paperbackStatus} {book.amazonLinks.paperbackPrice && `• ${book.amazonLinks.paperbackPrice}`}
+                            </div>
+                            {book.amazonLinks.paperbackASIN && (
+                              <a href={`https://www.amazon.com/dp/${book.amazonLinks.paperbackASIN}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs">
+                                ASIN: {book.amazonLinks.paperbackASIN} ↗
+                              </a>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-gray-500 text-xs">Hardcover</div>
+                            <div className={`font-medium ${book.amazonLinks.hardcoverStatus === 'Live' ? 'text-green-400' : 'text-gray-500'}`}>
+                              {book.amazonLinks.hardcoverStatus || 'Not Started'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
