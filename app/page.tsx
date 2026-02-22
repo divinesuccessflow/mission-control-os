@@ -1,135 +1,93 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
-import GoalTracker from '@/components/GoalTracker';
-import TaskBoard from '@/components/TaskBoard';
-import CascadeView from '@/components/CascadeView';
+import MusicFactory from '@/components/MusicFactory';
+import BooksKDP from '@/components/BooksKDP';
+import GumroadProducts from '@/components/GumroadProducts';
+import LandingPages from '@/components/LandingPages';
+import RevenueAds from '@/components/RevenueAds';
+import LinkedInCampaigns from '@/components/LinkedInCampaigns';
+import NandiniMasterclass from '@/components/NandiniMasterclass';
+import AIProsperity from '@/components/AIProsperity';
+import ProjectsHub from '@/components/ProjectsHub';
+import PreFlightCheck from '@/components/PreFlightCheck';
 import KnowledgeDocs from '@/components/KnowledgeDocs';
-import { 
-  LayoutDashboard, 
-  Target, 
-  ClipboardList, 
-  Network, 
-  BookOpen,
-  Menu,
-  X
-} from 'lucide-react';
-
-type View = 'dashboard' | 'goals' | 'tasks' | 'cascade' | 'docs';
-
-const navigation = [
-  { id: 'dashboard' as View, label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'goals' as View, label: 'Goal Tracker', icon: Target },
-  { id: 'tasks' as View, label: 'Task Board', icon: ClipboardList },
-  { id: 'cascade' as View, label: 'Cascade View', icon: Network },
-  { id: 'docs' as View, label: 'Knowledge', icon: BookOpen },
-];
+import { MissionControlData } from '@/types';
+import { loadData, saveData } from '@/lib/storage';
 
 export default function Home() {
-  const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('dashboard');
+  const [data, setData] = useState<MissionControlData | null>(null);
 
-  const CurrentComponent = {
-    dashboard: Dashboard,
-    goals: GoalTracker,
-    tasks: TaskBoard,
-    cascade: CascadeView,
-    docs: KnowledgeDocs,
-  }[currentView];
+  // Load data on mount
+  useEffect(() => {
+    setData(loadData());
+  }, []);
+
+  // Save data whenever it changes
+  useEffect(() => {
+    if (data) {
+      saveData(data);
+    }
+  }, [data]);
+
+  const handleUpdate = (newData: MissionControlData) => {
+    setData(newData);
+  };
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Loading Mission Control OS...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <Dashboard data={data} onNavigate={setCurrentView} />;
+      case 'music':
+        return <MusicFactory data={data} onUpdate={handleUpdate} />;
+      case 'books':
+        return <BooksKDP data={data} onUpdate={handleUpdate} />;
+      case 'gumroad':
+        return <GumroadProducts data={data} onUpdate={handleUpdate} />;
+      case 'landing':
+        return <LandingPages data={data} onUpdate={handleUpdate} />;
+      case 'revenue':
+        return <RevenueAds data={data} onUpdate={handleUpdate} />;
+      case 'linkedin':
+        return <LinkedInCampaigns data={data} onUpdate={handleUpdate} />;
+      case 'nandini':
+        return <NandiniMasterclass data={data} onUpdate={handleUpdate} />;
+      case 'ai-prosperity':
+        return <AIProsperity data={data} onUpdate={handleUpdate} />;
+      case 'projects':
+        return <ProjectsHub data={data} onUpdate={handleUpdate} />;
+      case 'preflight':
+        return <PreFlightCheck />;
+      case 'knowledge':
+        return <KnowledgeDocs />;
+      default:
+        return <Dashboard data={data} onNavigate={setCurrentView} />;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-gold to-blue rounded-lg flex items-center justify-center">
-                <LayoutDashboard className="w-6 h-6 text-background" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gold">Mission Control OS</h1>
-                <p className="text-xs text-gray-400">SFFCMM • Mission Control • PMP</p>
-              </div>
-            </div>
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden p-2 hover:bg-background rounded"
-            >
-              {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-2">
-              {navigation.map(item => {
-                const Icon = item.icon;
-                const isActive = currentView === item.id;
-                
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setCurrentView(item.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      isActive
-                        ? 'bg-gold text-background font-semibold'
-                        : 'hover:bg-background text-gray-300'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Mobile Navigation */}
-          {menuOpen && (
-            <nav className="lg:hidden mt-4 space-y-2 animate-slide-up">
-              {navigation.map(item => {
-                const Icon = item.icon;
-                const isActive = currentView === item.id;
-                
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setCurrentView(item.id);
-                      setMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                      isActive
-                        ? 'bg-gold text-background font-semibold'
-                        : 'hover:bg-background text-gray-300'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </nav>
-          )}
+    <div className="min-h-screen bg-background text-white flex">
+      <Sidebar currentView={currentView} onNavigate={setCurrentView} />
+      
+      <main className="flex-1 overflow-y-auto">
+        <div className="container max-w-7xl mx-auto p-6 lg:p-8">
+          {renderView()}
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <CurrentComponent />
       </main>
-
-      {/* Footer */}
-      <footer className="bg-card border-t border-border mt-16">
-        <div className="container mx-auto px-4 py-6 text-center text-sm text-gray-400">
-          <p>Mission Control OS • Built with Next.js, TypeScript, and Tailwind CSS</p>
-          <p className="mt-1">
-            Combining SFFCMM, Mission Control, and PMP frameworks for maximum productivity
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

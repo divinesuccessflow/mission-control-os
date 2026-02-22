@@ -1,19 +1,22 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 
+const inter = Inter({ subsets: ['latin'] });
+
 export const metadata: Metadata = {
-  title: 'Mission Control OS',
-  description: 'Productivity operating system combining SFFCMM, Mission Control, and PMP frameworks',
+  title: 'Mission Control OS V2',
+  description: "Yashaswi's operational command center",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }
