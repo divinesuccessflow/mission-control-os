@@ -1,11 +1,13 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig = {
   output: 'export',
-  basePath: process.env.NODE_ENV === 'production' ? '/mission-control-os' : '',
+  basePath: isProd ? '/mission-control-os' : '',
   images: {
     unoptimized: true,
   },
   trailingSlash: true,
-};
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
