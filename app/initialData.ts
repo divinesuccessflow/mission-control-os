@@ -67,9 +67,16 @@ export const initialBooks: Book[] = [
       pricing: false,
     }
   },
-  ...Array.from({ length: 8 }, (_, i) => ({
-    id: `book-${i + 3}`,
-    title: `Book Slot ${i + 3}`,
+  {
+    id: 'book-epstein',
+    title: 'Epstein Book',
+    wordCount: 0,
+    languages: ['English'],
+    status: 'Writing',
+  },
+  ...Array.from({ length: 7 }, (_, i) => ({
+    id: `book-${i + 4}`,
+    title: `Book Slot ${i + 4}`,
     wordCount: 0,
     languages: ['English'],
     status: 'Idea' as const,
@@ -160,7 +167,8 @@ export const initialClients: Client[] = [
     name: 'Rosa',
     status: 'Proposal',
     tasks: ['10-week consulting proposal', 'App requirements doc'],
-    notes: 'Waiting for proposal response',
+    revenue: 0,
+    notes: 'Custom app development project',
   },
   {
     id: 'client-2',
@@ -170,10 +178,11 @@ export const initialClients: Client[] = [
   },
   {
     id: 'client-3',
-    name: 'Daniel Melendez',
+    name: 'Daniel Meléndez',
     status: 'Active',
-    tasks: ['Signal Intelligence Playbook', 'Sales Strategy', '1000 personalized emails'],
+    tasks: ['Documentary script', 'SCMA website', 'LinkedIn strategy'],
     revenue: 0,
+    notes: 'Colombian fighter pilot, aviation safety consultant, 49,808 leads',
   },
   {
     id: 'client-4',
@@ -183,11 +192,11 @@ export const initialClients: Client[] = [
   },
   {
     id: 'client-5',
-    name: 'Nandini',
+    name: 'Nandini Savanura',
     status: 'Active',
-    tasks: ['Iceberg Assessment', 'Masterclass', 'Meta Ads campaign'],
+    tasks: ['Meta ads campaign', 'Landing page', 'Coaching program'],
     revenue: 0,
-    notes: 'High priority - ongoing masterclass delivery',
+    notes: 'Iceberg Success Mindset coaching',
   },
   {
     id: 'client-6',
@@ -218,6 +227,14 @@ export const initialClients: Client[] = [
     status: 'Active',
     tasks: ['Campaign playbook'],
   },
+  {
+    id: 'client-10',
+    name: 'Vinay (cousin)',
+    status: 'Prospect',
+    tasks: ['NSE stock AI questionnaire', 'Telegram bot spec'],
+    revenue: 0,
+    notes: 'Wants AI for NSE trading, Rs 500-1.5K/mo',
+  },
 ];
 
 export const initialPartnerships: Partnership[] = [
@@ -238,27 +255,82 @@ export const initialPartnerships: Partnership[] = [
   },
 ];
 
-export const initialSessions: Session[] = Array.from({ length: 10 }, (_, i) => ({
-  number: i + 1,
-  status: i < 7 ? 'Completed' : i === 7 ? 'Next' : 'Upcoming',
-  topic: i === 7 ? 'TBD - What to pitch?' : undefined,
-}));
+export const initialSessions: Session[] = [
+  {
+    number: 1,
+    status: 'Upcoming',
+    topic: 'Week 1: AI Foundation & Business Mindset (March 11, 2026)',
+  },
+  {
+    number: 2,
+    status: 'Upcoming',
+    topic: 'Week 2: AI Tools & Workflow Integration',
+  },
+  {
+    number: 3,
+    status: 'Upcoming',
+    topic: 'Week 3: Content Creation at Scale',
+  },
+  {
+    number: 4,
+    status: 'Upcoming',
+    topic: 'Week 4: Lead Generation & Client Acquisition',
+  },
+  {
+    number: 5,
+    status: 'Upcoming',
+    topic: 'Week 5: Sales Automation & CRM',
+  },
+  {
+    number: 6,
+    status: 'Upcoming',
+    topic: 'Week 6: Service Delivery & Operations',
+  },
+  {
+    number: 7,
+    status: 'Upcoming',
+    topic: 'Week 7: Pricing & Packaging',
+  },
+  {
+    number: 8,
+    status: 'Upcoming',
+    topic: 'Week 8: Launch Strategy & Go-to-Market',
+  },
+  {
+    number: 9,
+    status: 'Upcoming',
+    topic: 'Week 9: Scaling & Team Building',
+  },
+  {
+    number: 10,
+    status: 'Upcoming',
+    topic: 'Week 10: Long-term Growth & Exit Strategy',
+  },
+];
 
 export const initialContentPosts: ContentPost[] = [
   {
     id: 'post-1',
+    platform: 'LinkedIn',
+    topic: 'LinkedIn architecture post',
+    draftText: '',
+    status: 'Draft',
+  },
+  {
+    id: 'post-2',
     platform: 'LinkedIn',
     topic: 'AI Prosperity mindset shift',
     draftText: 'Most people think AI will replace them.\n\nSuccessful people ask: "How can I use AI to 10x my impact?"\n\nThe difference?\n\nMindset.\n\nIn AI Prosperity 4.0, we don\'t teach tools.\nWe teach transformation.\n\n10 weeks. 50 seats. March 11.\n\nAre you ready?',
     imagePrompt: 'Split screen: worried person vs confident person using AI, modern professional design',
     status: 'Draft',
   },
-  ...Array.from({ length: 21 }, (_, i) => ({
-    id: `post-${i + 2}`,
+  ...Array.from({ length: 20 }, (_, i) => ({
+    id: `post-${i + 3}`,
     platform: 'LinkedIn',
-    topic: `LinkedIn Post Slot ${i + 2}`,
+    topic: `Content Calendar Week ${Math.floor(i / 5) + 1} - Post ${(i % 5) + 1}`,
     draftText: '',
     status: 'Draft' as const,
+    notes: i < 22 ? 'Part of 22-post LinkedIn calendar (Mon/Wed/Fri/Sat over 4 weeks)' : undefined,
   }))
 ];
 
@@ -286,31 +358,45 @@ export const initialLandingPages: LandingPage[] = [
     id: 'lp-4',
     name: 'Divine Teams France',
     url: 'https://france.divineteams.ai',
-    status: 'Live',
+    status: 'Deployed',
   },
   {
     id: 'lp-5',
     name: 'Divine Teams Germany',
     url: 'https://germany.divineteams.ai',
-    status: 'Live',
+    status: 'Deployed',
   },
   {
     id: 'lp-6',
     name: 'Divine Teams Spain',
     url: 'https://spain.divineteams.ai',
-    status: 'Live',
+    status: 'Deployed',
   },
   {
     id: 'lp-7',
     name: 'Divine Teams Brazil',
     url: 'https://brazil.divineteams.ai',
-    status: 'Live',
+    status: 'Deployed',
   },
   {
     id: 'lp-8',
     name: 'Divine Teams Arabic',
     url: 'https://arabic.divineteams.ai',
-    status: 'Live',
+    status: 'Deployed',
+  },
+  {
+    id: 'lp-9',
+    name: 'TidyMac Landing',
+    url: '02_Products/TidyMac/landing-page/index.html',
+    status: 'Built',
+    notes: 'Dark macOS design, glassmorphism, 42KB HTML',
+  },
+  {
+    id: 'lp-10',
+    name: 'Nandini Success',
+    url: 'nandini.divinesuccessflow.com',
+    status: 'Blocked',
+    notes: 'Custom domain claimed by old Railway project',
   },
 ];
 
@@ -356,44 +442,114 @@ export const initialDigitalProducts: DigitalProduct[] = [
 export const initialProjects: Project[] = [
   {
     id: 'proj-1',
-    name: 'TraceLeads',
-    description: 'Lead generation platform',
+    name: 'TidyMac',
+    description: 'macOS menu bar app for one-click file organization. 5 modes, SwiftUI, $10.99/mo',
+    status: 'Development',
+    progress: 80,
+  },
+  {
+    id: 'proj-2',
+    name: 'Daniel Documentary',
+    description: 'Netflix-style documentary on aviation Safety Culture. Script + storyboard + narration done',
     status: 'Active',
     progress: 60,
   },
   {
-    id: 'proj-2',
-    name: 'Sunstream Global',
-    description: 'Exhibition lead generation campaign',
+    id: 'proj-3',
+    name: 'AI Prosperity 4.0',
+    description: '10-week AI business program launching March 11. Curriculum, masterprompt, build playbook, launch kit ready',
     status: 'Active',
-    progress: 75,
+    progress: 70,
   },
   {
-    id: 'proj-3',
-    name: 'FAaaS (Funnels as a Service)',
-    description: 'White-label funnel service',
+    id: 'proj-4',
+    name: 'Sovereign Finance',
+    description: '7,200-word guide on DeFi, privacy coins, jurisdictional arbitrage, crypto income',
+    status: 'Complete',
+    progress: 100,
+  },
+  {
+    id: 'proj-5',
+    name: 'Voice Cloning Research',
+    description: '25 models compared. Osho + Werner Erhard clone strategies documented',
+    status: 'Complete',
+    progress: 100,
+  },
+  {
+    id: 'proj-6',
+    name: 'MindFlow App',
+    description: 'Next.js + TypeScript mindmap app live at divinesuccessflow.github.io/mindflow',
+    status: 'Live',
+    progress: 100,
+  },
+  {
+    id: 'proj-7',
+    name: 'Meta Ads GTM',
+    description: 'Productized Meta API campaign setup for Indian agencies, Rs 15K-60K/month',
+    status: 'Planning',
+    progress: 30,
+  },
+  {
+    id: 'proj-8',
+    name: 'Sunstream Global',
+    description: 'US exhibition lead gen. 87 associations scraped, 10K Hunter leads split, MCAA 106 manufacturers extracted',
+    status: 'Active',
+    progress: 85,
+  },
+  {
+    id: 'proj-9',
+    name: 'Rosa App',
+    description: '10-week consulting proposal + app requirements document ready',
+    status: 'Proposal',
+    progress: 30,
+  },
+  {
+    id: 'proj-10',
+    name: 'Passenger Payback',
+    description: 'Flight compensation service, PRD + detailed business doc ready, launches March 20',
+    status: 'Planning',
+    progress: 45,
+  },
+  {
+    id: 'proj-11',
+    name: 'Orb Trading Bot',
+    description: 'Deferred to Q3 2026. Paper trader + camarilla built but backtesting module broken',
+    status: 'On Hold',
+    progress: 35,
+  },
+  {
+    id: 'proj-12',
+    name: 'KDP Publishing',
+    description: '7 languages ready for \'Why You Feel Stuck\', covers being made. Identity/bank/tax setup blocking',
+    status: 'Active',
+    progress: 40,
+  },
+  {
+    id: 'proj-13',
+    name: 'Nandini Savanura',
+    description: 'Ad campaigns, landing page, Iceberg Success Model coaching. Assessment ad live',
+    status: 'Active',
+    progress: 65,
+  },
+  {
+    id: 'proj-14',
+    name: 'FAaaS',
+    description: 'Factory AI as a Service for Karnataka factories. Beachhead: Peenya (8,500 factories). Rs 25K-2L/mo subscription',
     status: 'Planning',
     progress: 20,
   },
   {
-    id: 'proj-4',
-    name: 'Passenger Payback',
-    description: 'Flight compensation service',
-    status: 'On Hold',
-    progress: 40,
+    id: 'proj-15',
+    name: 'Longevity 500',
+    description: '500-year human longevity research. Wellness company structure under FSSAI',
+    status: 'Research',
+    progress: 20,
   },
   {
-    id: 'proj-5',
-    name: 'Rosa App',
-    description: 'Custom app development',
-    status: 'Proposal',
-    progress: 10,
-  },
-  {
-    id: 'proj-6',
-    name: 'Orb Trading Bot',
-    description: 'Automated trading system',
-    status: 'Development',
-    progress: 35,
+    id: 'proj-16',
+    name: 'Exoskeleton',
+    description: 'Full product document created for exoskeleton development',
+    status: 'Research',
+    progress: 15,
   },
 ];
