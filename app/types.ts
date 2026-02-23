@@ -108,3 +108,37 @@ export interface Project {
   status: string;
   progress?: number;
 }
+
+export interface DailyKPI {
+  books: number;
+  songs: number;
+  extensions: number;
+  registrations: number;
+  emails: number;
+  whatsapp: number;
+  linkedin: number;
+  webApps: number;
+  landingPages: number;
+  revenue: number;
+}
+
+export interface KPIData {
+  [date: string]: DailyKPI;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlocked: boolean;
+  unlockedDate?: string;
+}
+
+export interface KPIStats {
+  totalPoints: number;
+  level: number;
+  currentStreak: number;
+  longestStreak: number;
+  achievements: Achievement[];
+}

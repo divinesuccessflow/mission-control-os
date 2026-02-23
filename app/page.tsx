@@ -5,11 +5,12 @@ import {
   Home as HomeIcon, Music, BookOpen, ShoppingBag, Users, Users2, 
   GraduationCap, Rocket, FileText, Globe, DollarSign, 
   FolderKanban, CheckSquare, BookMarked, Copy, Check,
-  Plus, ChevronDown, ChevronUp, X
+  Plus, ChevronDown, ChevronUp, X, Target, TrendingUp, Award
 } from 'lucide-react';
 import { 
   Book, Song, Client, Partnership, Session, ContentPost, 
-  LandingPage, DigitalProduct, Project 
+  LandingPage, DigitalProduct, Project, DailyKPI, KPIData, 
+  Achievement, KPIStats 
 } from './types';
 import {
   initialBooks, initialSongs, initialClients, initialPartnerships,
@@ -18,7 +19,7 @@ import {
 } from './initialData';
 
 type NavItem = 
-  | 'dashboard' | 'songs' | 'books' | 'gumroad' | 'clients' 
+  | 'dashboard' | 'kpis' | 'songs' | 'books' | 'gumroad' | 'clients' 
   | 'partnerships' | 'ap3' | 'ap4' | 'content' | 'landing' 
   | 'revenue' | 'projects' | 'preflight' | 'knowledge';
 
@@ -36,6 +37,18 @@ export default function Home() {
   
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  
+  // KPI Dashboard State
+  const [kpiData, setKpiData] = useState<KPIData>({});
+  const [kpiStats, setKpiStats] = useState<KPIStats>({
+    totalPoints: 0,
+    level: 1,
+    currentStreak: 0,
+    longestStreak: 0,
+    achievements: []
+  });
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [showAnimation, setShowAnimation] = useState(false);
 
   // Load from localStorage
   useEffect(() => {
@@ -56,6 +69,25 @@ export default function Home() {
         console.error('Error loading saved data:', e);
       }
     }
+    
+    // Load KPI data
+    const savedKPI = localStorage.getItem('kpiData');
+    if (savedKPI) {
+      try {
+        setKpiData(JSON.parse(savedKPI));
+      } catch (e) {
+        console.error('Error loading KPI data:', e);
+      }
+    }
+    
+    const savedKPIStats = localStorage.getItem('kpiStats');
+    if (savedKPIStats) {
+      try {
+        setKpiStats(JSON.parse(savedKPIStats));
+      } catch (e) {
+        console.error('Error loading KPI stats:', e);
+      }
+    }
   }, []);
 
   // Save to localStorage
@@ -66,6 +98,157 @@ export default function Home() {
     };
     localStorage.setItem('missionControlData', JSON.stringify(data));
   }, [books, songs, clients, partnerships, sessions, contentPosts, landingPages, digitalProducts, projects]);
+  
+  // Save KPI data
+  useEffect(() => {
+    localStorage.setItem('kpiData', JSON.stringify(kpiData));
+  }, [kpiData]);
+  
+  useEffect(() => {
+    localStorage.setItem('kpiStats', JSON.stringify(kpiStats));
+  }, [kpiStats]);
+
+  // Render Charts
+  useEffect(() => {
+    if (activeNav !== 'kpis') return;
+    if (typeof window === 'undefined' || !(window as any).Chart) return;
+
+    const Chart = (window as any).Chart;
+
+    // Daily Bar Chart
+    const dailyCanvas = document.getElementById('dailyChart') as HTMLCanvasElement;
+    if (dailyCanvas) {
+      const ctx = dailyCanvas.getContext('2d');
+      if (ctx) {
+        const kpi = getKPIForDate(selectedDate);
+        const labels = ['Books', 'Songs', 'Extensions', 'Registrations', 'Emails', 'WhatsApp', 'LinkedIn', 'Web Apps', 'Landing Pages', 'Revenue'];
+        const actualData = [
+          kpi.books, kpi.songs, kpi.extensions, kpi.registrations,
+          kpi.emails, kpi.whatsapp, kpi.linkedin, kpi.webApps,
+          kpi.landingPages, kpi.revenue
+        ];
+        const targetData = [
+          kpiTargets.books, kpiTargets.songs, kpiTargets.extensions,
+          kpiTargets.registrations, kpiTargets.emails, kpiTargets.whatsapp,
+          kpiTargets.linkedin, kpiTargets.webApps, kpiTargets.landingPages,
+          kpiTargets.revenue
+        ];
+        
+        const percentages = actualData.map((val, i) => (val / targetData[i]) * 100);
+        const colors = percentages.map(p => {
+          if (p >= 100) return 'rgba(34, 197, 94, 0.8)';
+          if (p >= 50) return 'rgba(234, 179, 8, 0.8)';
+          return 'rgba(239, 68, 68, 0.8)';
+        });
+
+        // Destroy existing chart
+        Chart.getChart(dailyCanvas)?.destroy();
+
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Actual',
+                data: actualData,
+                backgroundColor: colors,
+                borderColor: colors.map(c => c.replace('0.8', '1')),
+                borderWidth: 1
+              },
+              {
+                label: 'Target',
+                data: targetData,
+                backgroundColor: 'rgba(107, 114, 128, 0.3)',
+                borderColor: 'rgba(107, 114, 128, 0.6)',
+                borderWidth: 1,
+                borderDash: [5, 5]
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: '#e7e9ea' }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { color: '#e7e9ea' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+              },
+              x: {
+                ticks: { color: '#e7e9ea' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // Weekly Trend Chart
+    const weeklyCanvas = document.getElementById('weeklyChart') as HTMLCanvasElement;
+    if (weeklyCanvas) {
+      const ctx = weeklyCanvas.getContext('2d');
+      if (ctx) {
+        const dates = [];
+        const scores = [];
+        const today = new Date();
+        
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(today);
+          date.setDate(date.getDate() - i);
+          const dateStr = date.toISOString().split('T')[0];
+          dates.push(dateStr.slice(5)); // MM-DD format
+          const kpi = getKPIForDate(dateStr);
+          scores.push(calculateDailyScore(kpi));
+        }
+
+        // Destroy existing chart
+        Chart.getChart(weeklyCanvas)?.destroy();
+
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: dates,
+            datasets: [{
+              label: 'Daily Score',
+              data: scores,
+              borderColor: 'rgb(234, 179, 8)',
+              backgroundColor: 'rgba(234, 179, 8, 0.1)',
+              tension: 0.4,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: { color: '#e7e9ea' }
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 1000,
+                ticks: { color: '#e7e9ea' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+              },
+              x: {
+                ticks: { color: '#e7e9ea' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+              }
+            }
+          }
+        });
+      }
+    }
+  }, [activeNav, selectedDate, kpiData]);
 
   const showToast = (message: string) => {
     setToast({ message, visible: true });
@@ -87,8 +270,173 @@ export default function Home() {
     setExpandedItems(newExpanded);
   };
 
+  // KPI Helper Functions
+  const kpiTargets = {
+    books: 3,
+    songs: 5,
+    extensions: 1,
+    registrations: 10,
+    emails: 1000,
+    whatsapp: 50,
+    linkedin: 25,
+    webApps: 1,
+    landingPages: 2,
+    revenue: 33333
+  };
+
+  const getKPIForDate = (date: string): DailyKPI => {
+    return kpiData[date] || {
+      books: 0, songs: 0, extensions: 0, registrations: 0,
+      emails: 0, whatsapp: 0, linkedin: 0, webApps: 0,
+      landingPages: 0, revenue: 0
+    };
+  };
+
+  const calculateDailyScore = (kpi: DailyKPI): number => {
+    let total = 0;
+    Object.keys(kpiTargets).forEach((key) => {
+      const k = key as keyof DailyKPI;
+      const percentage = (kpi[k] / kpiTargets[k]) * 100;
+      total += Math.min(percentage, 150); // Cap at 150% per KPI
+    });
+    return Math.round(total);
+  };
+
+  const updateKPI = (date: string, field: keyof DailyKPI, value: number) => {
+    const newKpiData = { ...kpiData };
+    if (!newKpiData[date]) {
+      newKpiData[date] = getKPIForDate(date);
+    }
+    newKpiData[date][field] = value;
+    setKpiData(newKpiData);
+    
+    // Trigger animation
+    setShowAnimation(true);
+    setTimeout(() => setShowAnimation(false), 1000);
+    
+    // Recalculate stats
+    recalculateStats(newKpiData);
+  };
+
+  const recalculateStats = (data: KPIData) => {
+    const dates = Object.keys(data).sort();
+    let totalPoints = 0;
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let tempStreak = 0;
+    
+    // Calculate total points and streaks
+    dates.forEach((date, index) => {
+      const score = calculateDailyScore(data[date]);
+      totalPoints += score;
+      
+      if (score >= 800) { // 80% of max (10 KPIs × 100 = 1000)
+        tempStreak++;
+        if (tempStreak > longestStreak) longestStreak = tempStreak;
+      } else {
+        tempStreak = 0;
+      }
+      
+      // Current streak (from most recent backwards)
+      if (index === dates.length - 1) {
+        currentStreak = tempStreak;
+      }
+    });
+    
+    // Calculate level (every 1000 points = 1 level)
+    const level = Math.floor(totalPoints / 1000) + 1;
+    
+    // Check achievements
+    const achievements = checkAchievements(data, currentStreak, totalPoints);
+    
+    setKpiStats({
+      totalPoints,
+      level,
+      currentStreak,
+      longestStreak,
+      achievements
+    });
+  };
+
+  const checkAchievements = (data: KPIData, streak: number, points: number): Achievement[] => {
+    const achievements: Achievement[] = [
+      {
+        id: 'first-1k-emails',
+        title: 'Email Champion',
+        description: 'Send 1,000 emails in a single day',
+        icon: '📧',
+        unlocked: false
+      },
+      {
+        id: '10-books',
+        title: 'Author Pro',
+        description: 'Publish 10 books total',
+        icon: '📚',
+        unlocked: false
+      },
+      {
+        id: '7-day-streak',
+        title: 'Week Warrior',
+        description: 'Maintain a 7-day streak',
+        icon: '🔥',
+        unlocked: false
+      },
+      {
+        id: 'perfect-day',
+        title: 'Perfect Day',
+        description: 'Hit 100% on all KPIs in one day',
+        icon: '💯',
+        unlocked: false
+      },
+      {
+        id: 'revenue-1l',
+        title: 'Revenue Milestone',
+        description: 'Earn ₹1,00,000 total',
+        icon: '💰',
+        unlocked: false
+      },
+      {
+        id: 'level-5',
+        title: 'Level 5',
+        description: 'Reach level 5',
+        icon: '⭐',
+        unlocked: false
+      }
+    ];
+
+    // Check each achievement
+    Object.values(data).forEach(kpi => {
+      if (kpi.emails >= 1000) achievements[0].unlocked = true;
+      const allGreen = Object.keys(kpiTargets).every(k => {
+        const key = k as keyof DailyKPI;
+        return kpi[key] >= kpiTargets[key];
+      });
+      if (allGreen) achievements[3].unlocked = true;
+    });
+
+    const totalBooks = Object.values(data).reduce((sum, kpi) => sum + kpi.books, 0);
+    if (totalBooks >= 10) achievements[1].unlocked = true;
+
+    if (streak >= 7) achievements[2].unlocked = true;
+
+    const totalRevenue = Object.values(data).reduce((sum, kpi) => sum + kpi.revenue, 0);
+    if (totalRevenue >= 100000) achievements[4].unlocked = true;
+
+    const level = Math.floor(points / 1000) + 1;
+    if (level >= 5) achievements[5].unlocked = true;
+
+    return achievements;
+  };
+
+  const getColorForPercentage = (percentage: number): string => {
+    if (percentage >= 100) return 'bg-green-500';
+    if (percentage >= 50) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
   const navItems = [
     { id: 'dashboard' as NavItem, icon: HomeIcon, label: 'Dashboard' },
+    { id: 'kpis' as NavItem, icon: Target, label: '🎯 Daily KPIs' },
     { id: 'songs' as NavItem, icon: Music, label: 'Songs (50)' },
     { id: 'books' as NavItem, icon: BookOpen, label: 'Books (500)' },
     { id: 'gumroad' as NavItem, icon: ShoppingBag, label: 'Gumroad' },
@@ -209,6 +557,266 @@ export default function Home() {
                   )}
                 </ul>
               </div>
+            </div>
+          )}
+
+          {/* KPI Dashboard */}
+          {activeNav === 'kpis' && (
+            <div>
+              <h2 className="text-3xl font-bold mb-6">🎯 Daily KPI Tracker</h2>
+              
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="bg-gradient-to-br from-gold-500/20 to-gold-600/10 border border-gold-500/30 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-gold-400 text-sm">Level</span>
+                    <Award className="text-gold-500" size={24} />
+                  </div>
+                  <div className="text-3xl font-bold text-gold-500">{kpiStats.level}</div>
+                  <div className="text-xs text-gray-400 mt-1">{kpiStats.totalPoints.toLocaleString()} XP</div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-orange-500/20 to-orange-600/10 border border-orange-500/30 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-orange-400 text-sm">Current Streak</span>
+                    <span className="text-2xl">🔥</span>
+                  </div>
+                  <div className="text-3xl font-bold text-orange-500">{kpiStats.currentStreak}</div>
+                  <div className="text-xs text-gray-400 mt-1">days</div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-blue-400 text-sm">Best Streak</span>
+                    <TrendingUp className="text-blue-500" size={24} />
+                  </div>
+                  <div className="text-3xl font-bold text-blue-500">{kpiStats.longestStreak}</div>
+                  <div className="text-xs text-gray-400 mt-1">days</div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/10 border border-purple-500/30 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-purple-400 text-sm">Achievements</span>
+                    <span className="text-2xl">🏆</span>
+                  </div>
+                  <div className="text-3xl font-bold text-purple-500">
+                    {kpiStats.achievements.filter(a => a.unlocked).length}/{kpiStats.achievements.length}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">unlocked</div>
+                </div>
+              </div>
+
+              {/* Date Selector */}
+              <div className="bg-[#16181c] border border-[#2f3336] rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-4 mb-4">
+                  <label className="text-sm text-gray-400">Select Date:</label>
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="bg-[#0f1419] border border-[#2f3336] rounded px-3 py-2 text-sm"
+                  />
+                  <button
+                    onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                    className="bg-gold-500 hover:bg-gold-600 text-black px-4 py-2 rounded text-sm"
+                  >
+                    Today
+                  </button>
+                  <div className="ml-auto text-sm">
+                    Daily Score: <span className="text-gold-500 font-bold text-xl ml-2">
+                      {calculateDailyScore(getKPIForDate(selectedDate))}
+                    </span>
+                  </div>
+                </div>
+
+                {/* KPI Input Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {Object.entries({
+                    books: { label: 'Books Published', icon: '📚', target: 3 },
+                    songs: { label: 'Songs Created', icon: '🎵', target: 5 },
+                    extensions: { label: 'Chrome Extensions', icon: '🧩', target: 1 },
+                    registrations: { label: 'Registrations', icon: '📝', target: 10 },
+                    emails: { label: 'Emails Sent', icon: '📧', target: 1000 },
+                    whatsapp: { label: 'WhatsApp Messages', icon: '💬', target: 50 },
+                    linkedin: { label: 'LinkedIn DMs', icon: '💼', target: 25 },
+                    webApps: { label: 'Web Apps Deployed', icon: '🌐', target: 1 },
+                    landingPages: { label: 'Landing Pages', icon: '🎯', target: 2 },
+                    revenue: { label: 'Revenue (₹)', icon: '💰', target: 33333 }
+                  }).map(([key, { label, icon, target }]) => {
+                    const kpi = getKPIForDate(selectedDate);
+                    const value = kpi[key as keyof DailyKPI];
+                    const percentage = (value / target) * 100;
+                    const colorClass = getColorForPercentage(percentage);
+                    
+                    return (
+                      <div key={key} className="bg-[#0f1419] border border-[#2f3336] rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-2xl">{icon}</span>
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-400">{label}</div>
+                            <div className="text-xs text-gray-500">Target: {target.toLocaleString()}</div>
+                          </div>
+                        </div>
+                        
+                        <input
+                          type="number"
+                          value={value}
+                          onChange={(e) => updateKPI(selectedDate, key as keyof DailyKPI, Number(e.target.value))}
+                          className="w-full bg-[#16181c] border border-[#2f3336] rounded px-3 py-2 mb-3 text-lg font-bold"
+                          min="0"
+                        />
+                        
+                        <div className="relative h-2 bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className={`absolute top-0 left-0 h-full ${colorClass} transition-all duration-300`}
+                            style={{ width: `${Math.min(percentage, 100)}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-gray-400 mt-1 text-right">
+                          {percentage.toFixed(0)}%
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Visualizations */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="bg-[#16181c] border border-[#2f3336] rounded-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">📊 Today's Progress</h3>
+                  <canvas id="dailyChart" height="300"></canvas>
+                </div>
+                <div className="bg-[#16181c] border border-[#2f3336] rounded-lg p-6">
+                  <h3 className="text-lg font-bold mb-4">📈 7-Day Trend</h3>
+                  <canvas id="weeklyChart" height="300"></canvas>
+                </div>
+              </div>
+
+              <div className="bg-[#16181c] border border-[#2f3336] rounded-lg p-6 mb-6">
+                <h3 className="text-lg font-bold mb-4">🗓️ Activity Heatmap (Last 30 Days)</h3>
+                <div id="heatmap" className="grid grid-cols-7 gap-2">
+                  {(() => {
+                    const days = [];
+                    const today = new Date();
+                    for (let i = 29; i >= 0; i--) {
+                      const date = new Date(today);
+                      date.setDate(date.getDate() - i);
+                      const dateStr = date.toISOString().split('T')[0];
+                      const kpi = getKPIForDate(dateStr);
+                      const score = calculateDailyScore(kpi);
+                      const percentage = (score / 1000) * 100;
+                      
+                      let bgColor = 'bg-gray-800';
+                      if (percentage >= 80) bgColor = 'bg-green-500';
+                      else if (percentage >= 50) bgColor = 'bg-yellow-500';
+                      else if (percentage > 0) bgColor = 'bg-red-500';
+                      
+                      days.push(
+                        <div
+                          key={dateStr}
+                          className={`aspect-square rounded ${bgColor} cursor-pointer hover:opacity-75 transition-opacity`}
+                          title={`${dateStr}: ${score} points (${percentage.toFixed(0)}%)`}
+                          onClick={() => setSelectedDate(dateStr)}
+                        />
+                      );
+                    }
+                    return days;
+                  })()}
+                </div>
+                <div className="flex items-center justify-end gap-4 mt-4 text-xs text-gray-400">
+                  <span>Less</span>
+                  <div className="flex gap-1">
+                    <div className="w-4 h-4 bg-gray-800 rounded"></div>
+                    <div className="w-4 h-4 bg-red-500 rounded"></div>
+                    <div className="w-4 h-4 bg-yellow-500 rounded"></div>
+                    <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  </div>
+                  <span>More</span>
+                </div>
+              </div>
+
+              {/* Achievements */}
+              <div className="bg-[#16181c] border border-[#2f3336] rounded-lg p-6 mb-6">
+                <h3 className="text-xl font-bold mb-4 text-gold-500">🏆 Achievements</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {kpiStats.achievements.map((achievement) => (
+                    <div
+                      key={achievement.id}
+                      className={`border rounded-lg p-4 ${
+                        achievement.unlocked
+                          ? 'bg-gold-500/10 border-gold-500/30'
+                          : 'bg-gray-800/20 border-gray-700 opacity-50'
+                      }`}
+                    >
+                      <div className="text-3xl mb-2">{achievement.icon}</div>
+                      <div className="font-bold mb-1">{achievement.title}</div>
+                      <div className="text-xs text-gray-400">{achievement.description}</div>
+                      {achievement.unlocked && achievement.unlockedDate && (
+                        <div className="text-xs text-gold-500 mt-2">
+                          Unlocked: {achievement.unlockedDate}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Export/Import */}
+              <div className="bg-[#16181c] border border-[#2f3336] rounded-lg p-6">
+                <h3 className="text-xl font-bold mb-4">📥 Data Management</h3>
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      const dataStr = JSON.stringify({ kpiData, kpiStats }, null, 2);
+                      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                      const url = URL.createObjectURL(dataBlob);
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = `kpi-data-${new Date().toISOString().split('T')[0]}.json`;
+                      link.click();
+                      showToast('KPI data exported!');
+                    }}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                  >
+                    Export JSON
+                  </button>
+                  <label className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded cursor-pointer">
+                    Import JSON
+                    <input
+                      type="file"
+                      accept=".json"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            try {
+                              const data = JSON.parse(event.target?.result as string);
+                              if (data.kpiData) setKpiData(data.kpiData);
+                              if (data.kpiStats) setKpiStats(data.kpiStats);
+                              showToast('KPI data imported!');
+                            } catch (err) {
+                              showToast('Error importing data!');
+                            }
+                          };
+                          reader.readAsText(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* XP Animation */}
+              {showAnimation && (
+                <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                  <div className="text-6xl font-bold text-gold-500 animate-bounce">
+                    +XP 🎉
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
