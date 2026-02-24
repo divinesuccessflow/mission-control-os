@@ -99,6 +99,7 @@ export interface DigitalProduct {
     pricing: boolean;
     cover: boolean;
   };
+  notes?: string;
 }
 
 export interface Project {
